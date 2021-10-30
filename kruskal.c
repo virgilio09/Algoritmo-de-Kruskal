@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -23,28 +24,27 @@ Grafo* cria_grafo(int nro_vertices, int grau_max){
         gr->pesos[i] = (float*) malloc(grau_max*sizeof(float));
     }
     return gr;
-} 
-
-int main(){
-
-    return 0;
 }
 
 int insereAresta(Grafo* gr, int orig, int dest, int eh_digrafo, float peso){
 
-    int verifica = 1;
 
     if(gr == NULL)
-        verifica = 0;
+        return  0;
     if(orig < 0 || orig >= gr->nro_vertices)
-        verifica = 0;
+        return  0;
     if(dest < 0 || dest >= gr->nro_vertices)
-        verifica = 0;
+        return  0;
 
     gr->arestas[orig][gr->grau[orig]] = dest;
     gr->pesos[orig][gr->grau[orig]] = peso;
 
     gr->grau[orig]++;
+
+    if(eh_digrafo == 0)
+        insereAresta(gr, dest, orig, 1, peso);
+    
+    return 1;
 }
 
 void libera_grafo(Grafo* gr){
@@ -61,4 +61,64 @@ void libera_grafo(Grafo* gr){
         free(gr);
 
     }
+}
+
+void algKruskal(Grafo *gr, int oring, int *pai){
+    int dest, primeiro, NV = gr->nro_vertices;
+    double menorPeso;
+    int *arv = (int*) malloc(NV * sizeof(int));
+
+    for(int i=0; i < NV; i++){
+        arv[i] = i;
+        pai[i] = -1; // sem pai
+    }
+    pai[oring] = oring;
+
+    while (1){
+        primeiro = 1;
+        for(int i=0; i < NV; i++){
+            for(int j=0; j < gr->grau[i]; i++){
+                //   procurando o menor peso
+                if(arv[i] != arv[gr->arestas[i][j]]){
+                    if(primeiro){
+                        menorPeso = gr->pesos[i][j];
+                        oring = i;
+                        dest = gr->arestas[i][j];
+                        primeiro = 0;
+                    }else{
+                        if(menorPeso > gr->pesos[i][j]){
+                            menorPeso = gr->pesos[i][j];
+                            oring = i;
+                            dest = gr->arestas[i][j];
+                        }
+                    }
+                }
+
+            }
+        }
+        if(primeiro == 1) break;
+        if(pai[oring] == -1) pai[oring] = dest;
+        else pai[dest] = oring;
+
+        for(int i=0; i < NV; i++){
+            if(arv[i] == arv[dest])
+                arv[i] = arv[oring]; 
+        }
+    }
+    
+}
+int main(){
+
+    Grafo *gr;
+    gr = cria_grafo(10, 7);
+
+    insereAresta(gr, 0, 1, 0, 6);
+
+    int pai[6];
+    
+    for(int i; i<6; i++)
+        printf("%d: %d\n", pai[i], i);
+    
+    libera_grafo(gr);
+    return 0;
 }
